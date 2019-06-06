@@ -1,0 +1,50 @@
+from realhttp import *
+from time import *
+from gpio import * 
+
+url = "http://localhost/servidor_iot/api.php"
+
+def lerTemperatura(input):
+	aux = analogRead(input)
+	temp = ((float(aux)/1023)*200)-100
+	temp = "{:.2f}".format(temp)
+	return str(temp) 
+	
+def lerHumidade(input):
+	aux = analogRead(input)
+	humd = ((float(aux)/1023)*100)
+	humd = "{:.2f}".format(humd)
+	return str(humd) 
+
+def lerPhotoSensor(input):
+	aux = digitalRead(input)
+	print (aux)
+	return str(aux)
+	
+		
+def onHTTPDone(status, data):
+	print("status: " + str(status))
+	print("data: " + data)
+
+def main():
+	http = RealHTTPClient()
+	http.onDone(onHTTPDone)
+	#http.get()
+
+	# don't let it finish
+	while True:
+		temp = lerTemperatura(A3)
+		humd = lerHumidade(A2)
+	#	luz = lerPhotoSensor(D4)
+		print "TEMPERATURA: " + str(temp)
+		print "HUMIDADE: " + str(humd)
+	#	print "luminosidad: " + str(luz)
+		hora = strftime("%d/%b/%Y %H:%M:%S", gmtime()) 
+		data_temp = {'nome': 'temperatura' , 'valor': temp , 'hora': hora} 
+		data_humd = {'nome': 'humidade' , 'valor': humd , 'hora': hora} 
+		http.post (url, data_temp)
+		http.post (url, data_humd)
+		sleep(1);
+
+if __name__ == "__main__":
+	main()
